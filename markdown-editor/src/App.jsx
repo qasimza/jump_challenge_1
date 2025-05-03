@@ -1,35 +1,45 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState, useRef } from 'react';
+import { marked } from 'marked';
+import html2pdf from 'html2pdf.js';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [markdown, setMarkdown] = useState('# Hello\n\nStart typing...');
+  const previewRef = useRef(null);
+
+  const copyToClipboard = () => {
+    const range = document.createRange();
+    range.selectNodeContents(previewRef.current);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    document.execCommand('copy');
+    selection.removeAllRanges();
+  };
+
+  const exportPDF = () => {
+    html2pdf().from(previewRef.current).save('markdown.pdf');
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="flex h-screen">
+      <textarea
+        className="w-1/2 p-4 font-mono border-r"
+        value={markdown}
+        onChange={(e) => setMarkdown(e.target.value)}
+      />
+      <div className="w-1/2 flex flex-col">
+        <div className="flex justify-end p-2 border-b">
+          <button onClick={copyToClipboard} className="mx-2 px-3 py-1 bg-gray-200 rounded">Copy</button>
+          <button onClick={exportPDF} className="px-3 py-1 bg-blue-500 text-white rounded">Export</button>
+        </div>
+        <div 
+          ref={previewRef}
+          className="flex-1 p-4 overflow-auto"
+          dangerouslySetInnerHTML={{ __html: marked(markdown) }}
+        />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
